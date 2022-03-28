@@ -15,7 +15,9 @@ import flickerapp.com.databinding.ActivityMainBinding;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class    MainActivity extends AppCompatActivity {
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity  implements GetFlickerJsonData.OnDataAvailable{
     private static final String TAG = "MainActivity";
 
     private AppBarConfiguration appBarConfiguration;
@@ -32,6 +34,9 @@ private ActivityMainBinding binding;
 
         setSupportActionBar(binding.toolbar);
 
+//        GetRawData getRawData = new GetRawData();
+//        getRawData.execute("");
+
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
@@ -46,7 +51,18 @@ private ActivityMainBinding binding;
 
         Log.d(TAG, "onCreate: Method ends");
     }
-@Override
+
+    @Override
+    protected void onResume() {
+        Log.d(TAG, "onResume: starts");
+        super.onResume();
+        GetFlickerJsonData getFlickerJsonData = new GetFlickerJsonData(this, "https://api.flickr.com/services/feeds/photos_public.gne", "en-us", true);
+//        getFlickerJsonData.executeOnSameThread("android, nougat");
+        getFlickerJsonData.execute("android", "nougat");
+        Log.d(TAG, "onResume: ends");
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -75,5 +91,14 @@ private ActivityMainBinding binding;
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+
+    public void onDataAvailable(List<Photo> data, DownloadStatus downloadStatus) {
+        if (downloadStatus == DownloadStatus.OK) {
+            Log.d(TAG, "onDataAvailable: data is " + data);
+        } else {
+            // download all processing failed   
+            Log.d(TAG, "onDataAvailable: failed with status " + downloadStatus);
+        }
     }
 }
